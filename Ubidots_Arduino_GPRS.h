@@ -17,7 +17,7 @@ typedef struct Value {
 
 class Ubidots{
     private:
-        SoftwareSerial _client = SoftwareSerial(7, 8);      
+        SoftwareSerial _client = SoftwareSerial(7, 8);   
         bool httpInit();
         char* _token;
         bool httpTerm();
@@ -29,6 +29,8 @@ class Ubidots{
 
     public:
         Ubidots(char* token);
+        void beginC();
+        void endC();
         void powerUpOrDown();
         bool setApn(char* apn, char* user, char* pwd);
         bool saveValue(double value, char* id);
