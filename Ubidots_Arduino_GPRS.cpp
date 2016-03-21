@@ -11,6 +11,17 @@ Ubidots::Ubidots(char* token){
     currentValue = 0;
     val = (Value *)malloc(maxValues*sizeof(Value));
 }
+/**For SoftwareSerial begin() function
+**/
+void Ubidots::beginC(){
+    _client.begin(19200);
+
+}
+/**For SoftwareSerial end() function
+**/
+void Ubidots::endC(){
+    _client.end();
+}
 /** 
  * This function is to power up or down GPRS Shield
  */
