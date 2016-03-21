@@ -1,0 +1,80 @@
+#include <SoftwareSerial.h>
+#include <TinyGPS++.h>
+#include <Ubidots_Arduino_GPRS.h>
+//Serial Relay - Arduino will patch a 
+//serial link between the computer and the GPRS Shield
+//at 19200 bps 8-N-1
+//Computer is connected to Hardware UART
+//GPRS Shield is connected to the Software UART 
+#define APN "yourAPN" 
+#define USER ""  // If your apn doesnt have username just put ""
+#define PASS ""  // If your apn doesnt have password just put ""
+#define TOKEN "yourToken"  // Replace it with your Ubidots token
+//ID for sending values and context
+#define ID1 "yourID" // Replace it with your variable ID
+//Creating instance for GPS communication
+SoftwareSerial ss(2,3);
+// The TinyGPS++ object for interfacing with the GPS
+TinyGPSPlus gps;
+//Declare indexes, and strings
+char latitude[12];
+char longitude[12];
+float value_1 = 1;
+char var[18] = "Lat: ";
+char var2[18] = "Long: ";
+Ubidots client(TOKEN);  
+
+void setup() {
+ 
+  // Setting Arduino baud rate for Serial communication
+  Serial.begin(9600);              
+  
+  client.powerUpOrDown();
+  client.setApn(APN,USER,PASS);
+  //Disable communication
+  client.endC();
+  
+  //Settig baud for communication with GPS
+  ss.begin(9600);
+}
+
+void loop() {
+   
+  //hadling GPS data parsing
+  while (ss.available() > 0) {
+    gps.encode(ss.read());}
+  //Once a valid location comes up it updates Lat/Long variables
+   if (gps.location.isUpdated())
+{
+    //Clearing lat/long context variables
+    strcpy(var, "Lat: ");
+    strcpy(var2,"Long: ");
+    //Convert double into string 
+    dtostrf(gps.location.lat(),10,6,latitude);
+    //Append latitude to var
+    strcat(var, latitude);
+    
+    dtostrf(gps.location.lng(),10,6,longitude);
+    //Append longitude to var2
+    strcat(var2, longitude);
+    //"Waits for the transmission of outgoing serial data to complete." May not be necessary
+    ss.flush();
+    //Disable communication
+    ss.end();
+   
+    Serial.flush();
+    //Begin communication
+    client.beginC();
+    
+    client.add(ID1, value_1, var, var2);
+    client.sendAll();
+    //End communication
+    client.endC();
+    //Begin communication
+    ss.begin(9600);
+  
+}
+//Added to check if values update on Serial Monitor
+Serial.println(var);
+Serial.println(var2);
+}  
